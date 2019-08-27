@@ -14,12 +14,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
@@ -55,10 +57,13 @@ public class TelaController implements Initializable
     @FXML
     private Button btn_Fechar;
     
-    private String pastaInicial = "C:\\Windows";
+    private String pastaInicial = "C:\\ESD";
     private File pasta;
     private ImageView imagem = new ImageView();
-    private ImageView naoimagem = new ImageView();    
+    private ImageView naoimagem = new ImageView();   
+    
+    @FXML
+    private ComboBox<String> cbb_Filtro;
     @Override
     public void initialize(URL url, ResourceBundle rb)
     {
@@ -69,17 +74,32 @@ public class TelaController implements Initializable
         col_tamanho.setCellValueFactory(new PropertyValueFactory<>("Tamanho"));
         col_pasta.setCellValueFactory(new PropertyValueFactory<>("icone"));
         
-        
-        preencherTabela();
+           tbv_Tabela.setRowFactory(tv -> new TableRow<Arquivo>()
+               {
+                   public void updateItem(Arquivo item, boolean empty)
+               {
+                   super.updateItem(item, empty);
+                   if(item != null && item.isPasta())
+                       setStyle("-fx-background-color: lightgrey");
+                   else
+                       setStyle("");
+               };
+               });
+        List<String>itens = new ArrayList<>();
+        itens.add(".txt");
+        ObservableList <String> itensMod = FXCollections.observableArrayList(itens);
+  
+        cbb_Filtro.setItems(itensMod);
+        preencherTabela("");
         
     }    
 
-    private void preencherTabela()
+    private void preencherTabela(String filtro)
     {
         pasta = new File(pastaInicial);
         Arquivo arq;
         
-        ContextMenu context = new ContextMenu();
+       ContextMenu context = new ContextMenu();
         MenuItem item = new MenuItem("Apagar");
         context.getItems().addAll(item);
         tbv_Tabela.setContextMenu(context);
@@ -94,7 +114,7 @@ public class TelaController implements Initializable
                 pasta.listFiles()[i].isDirectory(),new ImageView (new Image ("icons/pasta.png"))); // INSERIR ICONE DE PASTA                
                 arquivos.add(arq);    
             }
-            else //if(pasta.listFiles()[i].getName().endsWith(filtro))
+            else if(pasta.listFiles()[i].getName().endsWith(filtro))
             {
                 arq = new Arquivo(pasta.listFiles()[i].getName(),pasta.listFiles()[i].length(),
                     pasta.listFiles()[i].isDirectory(),new ImageView (new Image ("icons/txt.png"))); // INSERIR ICONE TXT
@@ -114,14 +134,14 @@ public class TelaController implements Initializable
                                 tbv_Tabela.refresh();
                                 pastaInicial = pastaInicial+"\\"+arquivo.getNome();
                                 tbv_Tabela.refresh();
-                                preencherTabela(); 
+                                preencherTabela(""); 
                             }
                                                       
                         }
                     }
                 });
         
-       
+    
         //INSERIR O  ARRAYLIST NA TABELA, CONVERTENDO-O EM OBSERVABLELIST
         tbv_Tabela.setItems(FXCollections.observableArrayList(arquivos));
     }
@@ -129,10 +149,17 @@ public class TelaController implements Initializable
     @FXML
     private void evt_Atualizar(ActionEvent event)
     {
-        tbv_Tabela.refresh();
-        preencherTabela();
+        if (!cbb_Filtro.getSelectionModel().isEmpty())
+        {
+            tbv_Tabela.refresh();
+            preencherTabela(cbb_Filtro.getSelectionModel().getSelectedItem());
+        }
+        else 
+        {
+            tbv_Tabela.refresh();
+            preencherTabela("");
+        }
     }
-
     @FXML
     private void evt_NovaPasta(ActionEvent event)
     {
@@ -149,7 +176,7 @@ public class TelaController implements Initializable
             File npasta = new File(pastaInicial+"//"+resultado.get());            
             npasta.mkdir();
             tbv_Tabela.getItems().add(new Arquivo(npasta.getName(),0,true,imagem));
-            preencherTabela();
+            preencherTabela(cbb_Filtro.getSelectionModel().getSelectedItem());
         }
     }
 

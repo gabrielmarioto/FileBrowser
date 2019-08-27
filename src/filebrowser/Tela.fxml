@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.HBox?>
@@ -11,6 +12,7 @@
    <children>
       <HBox alignment="CENTER_RIGHT" maxHeight="40.0" minHeight="40.0" prefHeight="40.0" prefWidth="200.0" spacing="10.0" style="-fx-background-color: salmon;">
          <children>
+            <ComboBox fx:id="cbb_Filtro" prefHeight="25.0" prefWidth="52.0" />
             <Button fx:id="btn_Atualizar" mnemonicParsing="false" onAction="#evt_Atualizar" text="Atualizar" />
             <Button fx:id="btn_NovaPasta" layoutX="558.0" layoutY="18.0" mnemonicParsing="false" onAction="#evt_NovaPasta" text="Nova Pasta" />
          </children>
