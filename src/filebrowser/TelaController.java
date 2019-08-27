@@ -57,7 +57,7 @@ public class TelaController implements Initializable
     @FXML
     private Button btn_Fechar;
     
-    private String pastaInicial = "C:\\ESD";
+    private String pastaInicial = "C:\\Windows";
     private File pasta;
     private ImageView imagem = new ImageView();
     private ImageView naoimagem = new ImageView();   
