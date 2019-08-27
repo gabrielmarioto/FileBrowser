@@ -8,16 +8,21 @@ package filebrowser;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import static java.util.Collections.list;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
@@ -25,6 +30,9 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
+import javafx.stage.Stage;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -47,11 +55,10 @@ public class TelaController implements Initializable
     @FXML
     private Button btn_Fechar;
     
-    private String pastaInicial = "C:\\ALO";
+    private String pastaInicial = "C:\\Windows";
     private File pasta;
     private ImageView imagem = new ImageView();
-    private ImageView naoimagem = new ImageView();
-            
+    private ImageView naoimagem = new ImageView();    
     @Override
     public void initialize(URL url, ResourceBundle rb)
     {
@@ -66,39 +73,55 @@ public class TelaController implements Initializable
         preencherTabela();
         
     }    
+
     private void preencherTabela()
     {
         pasta = new File(pastaInicial);
         Arquivo arq;
         
+        ContextMenu context = new ContextMenu();
+        MenuItem item = new MenuItem("Apagar");
+        context.getItems().addAll(item);
+        tbv_Tabela.setContextMenu(context);
+        
         List <Arquivo> arquivos = new ArrayList();
+        
         for (int i = 0; i < pasta.listFiles().length; i++)
         {
             if(pasta.listFiles()[i].isDirectory() == true)
             {
                 arq = new Arquivo(pasta.listFiles()[i].getName(),pasta.listFiles()[i].length(),
-                pasta.listFiles()[i].isDirectory(),new ImageView (new Image ("icons/pasta.png")));                 
-                tbv_Tabela.setRowFactory(tv ->
-                {
-                    return new TableRow<Arquivo>()
-                    {                        
-                        public void updateItem(Arquivo item, boolean empty)
-                        {
-                            super.updateItem(item, empty);    
-                            setStyle("-fx-fill: red");
-                        }
-                    };
-                });
-
+                pasta.listFiles()[i].isDirectory(),new ImageView (new Image ("icons/pasta.png"))); // INSERIR ICONE DE PASTA                
+                arquivos.add(arq);    
             }
-            else
+            else //if(pasta.listFiles()[i].getName().endsWith(filtro))
             {
                 arq = new Arquivo(pasta.listFiles()[i].getName(),pasta.listFiles()[i].length(),
-                    pasta.listFiles()[i].isDirectory(),new ImageView (new Image ("icons/txt.png")));   
-            }                                     
-            arquivos.add(arq);                      
+                    pasta.listFiles()[i].isDirectory(),new ImageView (new Image ("icons/txt.png"))); // INSERIR ICONE TXT
+                arquivos.add(arq);  
+            }     
+                                
         }
+        tbv_Tabela.setOnMouseClicked(new EventHandler<MouseEvent>() // PEGAR DOUBLE CLICK DO MOUSE E ACESSAR A PASTA
+                {
+                    public void handle(MouseEvent event)
+                    {
+                        if(event.getClickCount() == 2)
+                        {
+                            Arquivo arquivo = tbv_Tabela.getSelectionModel().getSelectedItem();
+                            if(arquivo.isPasta())
+                            {
+                                tbv_Tabela.refresh();
+                                pastaInicial = pastaInicial+"\\"+arquivo.getNome();
+                                tbv_Tabela.refresh();
+                                preencherTabela(); 
+                            }
+                                                      
+                        }
+                    }
+                });
         
+       
         //INSERIR O  ARRAYLIST NA TABELA, CONVERTENDO-O EM OBSERVABLELIST
         tbv_Tabela.setItems(FXCollections.observableArrayList(arquivos));
     }
@@ -126,13 +149,14 @@ public class TelaController implements Initializable
             File npasta = new File(pastaInicial+"//"+resultado.get());            
             npasta.mkdir();
             tbv_Tabela.getItems().add(new Arquivo(npasta.getName(),0,true,imagem));
-          preencherTabela();
+            preencherTabela();
         }
     }
 
     @FXML
     private void evt_Fechar(ActionEvent event)
     {
-        
+        Stage stage = (Stage) btn_Fechar.getScene().getWindow();
+        stage.close();
     }
 }
